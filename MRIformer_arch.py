@@ -29,11 +29,10 @@ class MRIformer(nn.Module):
         self.num_layer = num_layer
         self.output = nn.Conv1d(in_channels = Input_len, out_channels=out_len, kernel_size=1)
 
-    def forward(self, history_data: torch.Tensor, future_data: torch.Tensor, batch_seen: int, epoch: int, train: bool, **kwargs) -> torch.Tensor:
-        # Input [B,H,N,C]: B is batch size. N is the number of variables. H is the history length
-        # Output [B,L,N,1]: B is batch size. N is the number of variables. L is the future length
-
-        x = history_data[:, :, :, 0]
+    def forward(self, x):
+        # Input [B,H,N]: B is batch size. N is the number of variables. H is the history length
+        # Output [B,L,N]: B is batch size. N is the number of variables. L is the future length
+        
         x = self.RevIN(x, 'norm').transpose(-2, -1)
 
         for i in range(self.num_layer):
@@ -42,5 +41,4 @@ class MRIformer(nn.Module):
 
         x = self.output(x.transpose(-2, -1))
         x = self.RevIN(x, 'denorm')
-        x = x.unsqueeze(-1)
         return x
