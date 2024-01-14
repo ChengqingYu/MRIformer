@@ -7,14 +7,18 @@ import torch.nn.functional as F
 class ASI_block_att(nn.Module):
     def __init__(self,Input_len, num_id, num_hi, num_head, dropout,IF_Chanel):
         super(ASI_block_att, self).__init__()
+        
         self.final_len = Input_len//2
         self.IF_Chanel = IF_Chanel
+        
         ### temporal attention
         self.Time_att_1 = Time_att(self.final_len, num_head,dropout)
         self.Time_att_2 = Time_att(self.final_len, num_head,dropout)
+        
         ### Interactive attention
         self.Interaction_att_1 = Interaction_att(self.final_len, num_head,dropout)
         self.Interaction_att_2 = Interaction_att(self.final_len, num_head,dropout)
+        
         ### output
         self.laynorm_1 = nn.LayerNorm([num_hi, self.final_len])
         self.laynorm_2 = nn.LayerNorm([num_hi, self.final_len])
@@ -33,6 +37,7 @@ class ASI_block_att(nn.Module):
         else:
             x_1 = x[:,:,:,0::2]
             x_2 = x[:,:,:,1::2]
+            
         ### temporal attention
         x_1 = self.Time_att_1(x_1)
         x_2 = self.Time_att_2(x_2)
@@ -46,6 +51,7 @@ class ASI_block_att(nn.Module):
         x_22 = x_22 + self.dropout(self.linear_2(x_22))
         x_11 = self.laynorm_1(x_11)
         x_22 = self.laynorm_2(x_22)
+        
         ### output
         x_11 = x_11.unsqueeze(-1)
         x_22 = x_22.unsqueeze(-1)
@@ -62,11 +68,12 @@ class ASI_block_att(nn.Module):
 class MRI_block_att(nn.Module):
     def __init__(self,Input_len, num_id, num_hi, num_head,dropout,IF_Chanel):
         super(MRI_block_att, self).__init__()
-        ###
+        ### sequence length
         self.embed = nn.Linear(1, num_hi)
         self.len_2 = Input_len //2
         self.len_3 = Input_len //4
         self.IF_Chanel = IF_Chanel
+        
         ### ASI_block
         self.ASI_1 = ASI_block_att(Input_len, num_id, num_hi, num_head,dropout,IF_Chanel)
         self.ASI_2 = ASI_block_att(self.len_2, num_id, num_hi, num_head,dropout,IF_Chanel)
@@ -95,6 +102,7 @@ class MRI_block_att(nn.Module):
                 result_2 = line
             else:
                 result_2 = torch.cat([result_2,line],dim=-1)
+        
         """
         ###three layer
         result_3 = 0.0
@@ -106,6 +114,7 @@ class MRI_block_att(nn.Module):
             else:
                 result_3 = torch.cat([result_3,line],dim=-1)
         """
+        
         B,N,C = result_2.shape[0],result_2.shape[1],result_2.shape[2]
         result_2 = result_2.reshape((B,N,C,-1))
         x = x + result_2
