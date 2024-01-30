@@ -12,7 +12,7 @@ If the code is helpful to you, please cite the following paper:
   title={MRIformer: A multi-resolution interactive transformer for wind speed multi-step prediction},
   author={Yu, Chengqing and Yan, Guangxi and Yu, Chengming and Liu, Xinwei and Mi, Xiwei},
   journal={Information Sciences},
-  volume={},
+  volume={661},
   pages={120150},
   year={2024},
   publisher={Elsevier}
